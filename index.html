@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Маньяк">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
@@ -73,8 +73,8 @@ input{width:100%;max-width:336px;padding:12px;font-size:16px;border-radius:10px;
 <p id="res"></p>
 <div id="info"></div>
 <div class="pn hide" id="pAuth">
-  <p>Войдите в аккаунт или создайте новый. Логин — 4 случайные цифры (выдаются при создании), пароль — от 4 до 8 символов.</p>
-  <input id="alog" maxlength="4" inputmode="numeric" placeholder="Логин (4 цифры)">
+  <p>Войдите в аккаунт или создайте новый. Логин — 8 цифр (выдаётся при создании), пароль — от 4 до 8 символов.</p>
+  <input id="alog" maxlength="8" inputmode="numeric" placeholder="Логин (8 цифр)">
   <input id="apw" type="password" maxlength="8" placeholder="Пароль (4–8 символов)">
   <button class="b g" id="bLogin">Войти</button>
   <button class="b d" id="bReg">Создать аккаунт с этим паролем</button>
@@ -172,11 +172,13 @@ let S=null,run=false,isHost=false,started=false,lobbyOn=false,players=[],lmode=1
 
 /* ---------- аккаунты и статистика ---------- */
 const hsh=t=>{let x=2166136261;t='mn$'+t;for(let i=0;i<t.length;i++){x^=t.charCodeAt(i);x=Math.imul(x,16777619)}return(x>>>0).toString(16)};
-const SPECIAL={'0001':{h:'72fd60d9',role:'admin'},'6767':{h:'dca1a6a2',role:'beta'}};
+const SPECIAL={'00000001':{h:'72fd60d9',role:'admin'},'67676767':{h:'dca1a6a2',role:'beta'}};
 const STAT0={games:0,wins:0,losses:0,asS:0,asM:0,esc:0,keys:0,items:0,caught:0,deaths:0,catches:0,kills:0,heals:0,shots:0,ads:0};
 let acct=null,DB=null,betaUsed={};
 const acctRole=()=>acct?acct.role:'user';
-function db(){if(!DB){try{DB=JSON.parse(localStorage.getItem('mn_accts'))||{}}catch(e){DB={}}}return DB}
+function db(){if(!DB){try{DB=JSON.parse(localStorage.getItem('mn_accts'))||{}}catch(e){DB={}}
+  let ch=false;for(const k of Object.keys(DB))if(/^\d{4}$/.test(k)){const n=k.padStart(8,'0');if(!DB[n]&&!SPECIAL[n]){DB[n]=DB[k]}delete DB[k];ch=true}
+  if(ch){try{localStorage.setItem('mn_accts',JSON.stringify(DB))}catch(e){}}}return DB}
 function dbSave(){try{localStorage.setItem('mn_accts',JSON.stringify(db()))}catch(e){}}
 function stats(){const d=db()[acct.login];d.st=Object.assign({},STAT0,d.st||{});return d.st}
 function setAcct(l,role,h){
@@ -192,7 +194,7 @@ function setAcct(l,role,h){
 function autoLogin(){
   let v=null;try{v=localStorage.getItem('mn_sess')}catch(e){}
   if(!v)return false;
-  const[l,h]=v.split(':'),sp=SPECIAL[l];
+  let[l,h]=v.split(':');if(/^\d{4}$/.test(l))l=l.padStart(8,'0');const sp=SPECIAL[l];
   if(sp){if(sp.h===h){setAcct(l,sp.role,h);return true}return false}
   const a=db()[l];
   if(a&&a.h&&a.h===h){setAcct(l,'user',h);return true}
@@ -200,7 +202,7 @@ function autoLogin(){
 }
 function doLogin(){
   const l=$('alog').value.trim(),pw=$('apw').value;
-  if(!/^\d{4}$/.test(l)){info('Логин — ровно 4 цифры');return}
+  if(!/^\d{8}$/.test(l)){info('Логин — ровно 8 цифр');return}
   const sp=SPECIAL[l];
   if(sp){if(hsh(pw)!==sp.h){info('Неверный логин или пароль');return}info('');setAcct(l,sp.role,sp.h);return}
   const a=db()[l];
@@ -211,7 +213,7 @@ function doReg(){
   const pw=$('apw').value;
   if(pw.length<4||pw.length>8){info('Пароль должен быть от 4 до 8 символов');return}
   let l,i=0;
-  do{l=String(Math.random()*10000|0).padStart(4,'0');i++}while((SPECIAL[l]||db()[l])&&i<5000);
+  do{l=String(Math.random()*1e8|0).padStart(8,'0');i++}while((SPECIAL[l]||db()[l])&&i<5000);
   if(SPECIAL[l]||db()[l]){info('Не удалось подобрать свободный логин');return}
   db()[l]={h:hsh(pw),st:{}};dbSave();
   setAcct(l,'user',hsh(pw));

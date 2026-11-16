@@ -1,6 +1,6 @@
 /* Офлайн-кэш: игра открывается без интернета (онлайн-комнаты по-прежнему требуют сеть) */
-const V='maniac-v1';
-const CORE=['./','./index.html','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-maskable-512.png','./icons/apple-touch-icon.png',
+const V='maniac-v3';
+const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png',
  'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(V).then(c=>Promise.allSettled(CORE.map(u=>c.add(new Request(u,u.startsWith('http')?{mode:'no-cors'}:{}))))).then(()=>self.skipWaiting()));
